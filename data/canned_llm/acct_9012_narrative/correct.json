@@ -1,0 +1,14 @@
+{
+  "consumer_name": "Maria L. Garcia",
+  "last4": "5555",
+  "original_creditor": "Coastal Savings Bank",
+  "debt_buyer": "Buyer B, LLC",
+  "chargeoff_balance": "$3,200.75",
+  "chargeoff_date": "04/10/2024",
+  "last_payment_date": "02/20/2024",
+  "last_payment_amount": "$75.00",
+  "closing_date": "06/30/2024",
+  "sale_balance": "$3,350.00",
+  "transfer_date": "07/15/2024",
+  "bill_of_sale_attached": true
+}

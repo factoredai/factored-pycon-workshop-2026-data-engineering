@@ -1,0 +1,8 @@
+pypdf>=4.0.0
+pydantic>=2.0.0
+fpdf2>=2.7.0
+pytest>=8.0.0
+
+# Optional: install ONE of these to enable live LLM extraction (see .env.example)
+# pip install anthropic
+# pip install openai

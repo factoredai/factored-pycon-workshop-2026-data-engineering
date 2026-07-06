@@ -1,0 +1,12 @@
+[project]
+name = "factored-pycon-workshop-2026-data-engineering"
+version = "0.1.0"
+description = "PyCon Colombia 2026 Workshop: PDF Data Extraction at Scale"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = [
+    "stretch: tests that require an optional stretch blank (skipped if not implemented)",
+]
