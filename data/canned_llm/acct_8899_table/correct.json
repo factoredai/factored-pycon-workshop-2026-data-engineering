@@ -1,0 +1,14 @@
+{
+  "consumer_name": "Alice B. Cooper",
+  "last4": "8899",
+  "original_creditor": "Summit Credit Union",
+  "debt_buyer": "Buyer A, LLC",
+  "chargeoff_balance": "$5,400.00",
+  "chargeoff_date": "07/01/2024",
+  "last_payment_date": "06/15/2024",
+  "last_payment_amount": "$90.00",
+  "closing_date": "06/30/2024",
+  "sale_balance": "$5,650.00",
+  "transfer_date": "07/15/2024",
+  "bill_of_sale_attached": true
+}

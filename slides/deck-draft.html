@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PDF Data Extraction at Scale: When to Trust an LLM - Deck Draft</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 960px; margin: 2em auto; padding: 1em; color: #1a1a1a; background: #fafafa; }
+    h1 { font-size: 1.6em; border-bottom: 2px solid #0a5; padding-bottom: 0.3em; }
+    .slide { border: 1px solid #ccc; border-radius: 8px; padding: 1.8em 2em; margin: 2.5em 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); page-break-after: always; }
+    .slide h2 { margin-top: 0; color: #0a5; font-size: 1.5em; }
+    .slide h3 { color: #333; font-size: 1.1em; margin-top: 1.2em; }
+    .slide .meta { color: #888; font-size: 0.85em; border-bottom: 1px dashed #ddd; padding-bottom: 0.4em; margin-bottom: 1em; }
+    .slide .notes { background: #f0f7f0; padding: 0.6em 1em; margin-top: 1.2em; border-radius: 4px; font-size: 0.85em; color: #555; }
+    .slide table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.95em; }
+    .slide th, .slide td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
+    .slide th { background: #f5f5f5; font-weight: 600; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.03em; }
+    .slide ul, .slide ol { padding-left: 1.4em; }
+    .slide li { margin: 0.3em 0; }
+    .slide code { background: #eef; padding: 1px 5px; border-radius: 3px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.9em; }
+    .slide pre { background: #1a1a2e; color: #e0e0e0; padding: 1em; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+    .slide pre code { background: none; color: inherit; padding: 0; }
+    .highlight { background: #fff3cd; padding: 0.4em 0.8em; border-left: 3px solid #ffc107; border-radius: 0 4px 4px 0; margin: 0.8em 0; }
+    .verdict-pass { display: inline-block; background: #d4edda; color: #155724; padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85em; }
+    .verdict-review { display: inline-block; background: #f8d7da; color: #721c24; padding: 2px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85em; }
+    .diagram { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 1.2em; margin: 1em 0; font-family: monospace; text-align: center; font-size: 0.95em; line-height: 1.8; }
+    .toc { list-style: none; padding: 0; columns: 2; column-gap: 2em; }
+    .toc li { padding: 3px 0; border-bottom: 1px dashed #eee; }
+    .toc li a { color: #0a5; text-decoration: none; }
+    .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 1px 8px; border-radius: 10px; font-size: 0.8em; font-weight: 600; margin-right: 4px; }
+    .badge-warn { background: #fff3e0; color: #e65100; }
+    .badge-info { background: #e3f2fd; color: #1565c0; }
+  </style>
+</head>
+<body>
+
+<h1>Workshop Deck Draft: Send to Diego for Google Slides polish</h1>
+<p>13 slides. Content in English. Speaker delivers in Spanish.
+Thread: <strong>"Eyes / Brain / Conscience / Judge"</strong>.
+Intro (slides 1-8): 20 min. Exercises (slides 9-12): 90 min. Closing (slide 13): 10 min.
+Speaker notes (in Spanish) are embedded in each slide's green notes box.</p>
+
+<ul class="toc">
+  <li><a href="#slide-1">1. Title</a></li>
+  <li><a href="#slide-2">2. What You Will Learn</a></li>
+  <li><a href="#slide-3">3. The Real Problem</a></li>
+  <li><a href="#slide-4">4. How Extraction Evolved</a></li>
+  <li><a href="#slide-5">5. PDF Types (during smoke test)</a></li>
+  <li><a href="#slide-6">6. Eyes / Brain / Conscience / Judge</a></li>
+  <li><a href="#slide-7">7. Live Demo</a></li>
+  <li><a href="#slide-8">8. The 4 Pillars</a></li>
+  <li><a href="#slide-9">9. Exercise 1: Extraction</a></li>
+  <li><a href="#slide-10">10. Exercise 2: Guardrails</a></li>
+  <li><a href="#slide-11">11. Exercise 3: Idempotency</a></li>
+  <li><a href="#slide-12">12. Exercise 4: Orchestration</a></li>
+  <li><a href="#slide-13">13. Closing</a></li>
+</ul>
+
+<!-- ================================================================ -->
+<!-- SLIDE 1                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-1">
+  <div class="meta">Slide 1 | 0:00 - 0:02 | 2 min</div>
+
+  <div style="display:flex; align-items:flex-start; gap:2em;">
+    <div style="flex:2;">
+      <h2>PDF Data Extraction at Scale: When to Trust an LLM</h2>
+
+      <p style="margin-top:2em; font-size:1.1em;">
+        <strong>Douglas Ardila</strong><br>
+        Engineering Manager &amp; Data Engineer<br>
+        <a href="https://factored.ai">Factored</a>
+      </p>
+
+      <p style="color:#888; margin-top:1.5em;">PyCon Colombia 2026</p>
+    </div>
+
+    <div style="flex:1; text-align:center;">
+      <div style="border:2px dashed #ccc; border-radius:8px; padding:2em 1em; background:#fafafa; color:#888; font-size:0.85em;">
+        [QR code placeholder]
+      </div>
+      <p style="font-size:0.9em; color:#333; margin-top:0.6em;">
+        <strong>Workshop repo</strong><br>
+        <code style="font-size:0.85em;">github.com/factoredai/<br>factored-pycon-workshop-2026-data-engineering</code>
+      </p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Bienvenidos. Soy Douglas Ardila, Engineering Manager y Data Engineer en Factored."<br>
+    - "Afuera hay muchos talleres que enseñan a construir con LLMs. Yo les voy a enseñar a atraparlos cuando mienten."<br>
+    - "Vamos a construir un pipeline que corro en producción: lee miles de PDFs legales. Tiene que ser perfecto, porque un error significa que alguien firma algo falso bajo juramento."<br>
+    - Setup: "Si no clonaron el repo, escaneen el QR y hagan <code>git clone</code> (2 min). Los que ya lo tienen: revisen que <code>docker compose up -d</code> arrancó sin errores."<br>
+    <br>
+    <strong>Prep (no se dice):</strong> Generar el QR al URL del repo (PNG 400x400+, legible desde el fondo) y reemplazar el placeholder antes de mandar a Diego. En frío, <code>docker compose up -d</code> tarda ~40-45s (asume que ya corrieron <code>docker compose build</code> antes del evento). Si alguien nunca corrió el build, que se siente con un vecino que sí y siga en su pantalla.<br>
+    <br>
+    <strong>Transición:</strong> "Antes de entrar al problema, esto es lo que se van a llevar en estas 2 horas."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 2 (Learning Objectives)                                    -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-2">
+  <div class="meta">Slide 2 | 0:02 - 0:03 | 1 min</div>
+  <h2>What You Will Learn in the Next 2 Hours</h2>
+
+  <ol>
+    <li><strong>When to use regex vs an LLM</strong> for extracting data from PDFs.</li>
+    <li><strong>How to build the Conscience</strong> (deterministic guardrails) that catches hallucinated amounts, dates, and missing exhibits.</li>
+    <li><strong>How to make a pipeline idempotent</strong> with content hashing and upsert by business key.</li>
+    <li><strong>How to orchestrate it all</strong> with Airflow TaskGroups per entity.</li>
+  </ol>
+
+  <p style="margin-top:1.5em;">
+    You leave with a <strong>working pipeline</strong> and a mental model you can apply to any
+    domain where an AI generates data that has real consequences.
+  </p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "En las próximas 2 horas van a construir 4 cosas." (señalar la lista)<br>
+    - "Primero: cuándo usar regex y cuándo un LLM para extraer datos de PDFs."<br>
+    - "Segundo: la Conciencia (guardrails deterministas) que atrapa alucinaciones del modelo."<br>
+    - "Tercero: idempotencia. Correr el pipeline dos veces sin duplicar resultados."<br>
+    - "Cuarto: orquestación con Airflow."<br>
+    - "Se llevan un pipeline funcional y un modelo mental que aplica más allá de PDFs: cualquier pipeline donde una IA genera datos con consecuencias reales."<br>
+    <br>
+    <strong>Transition:</strong> "Empecemos por el problema que resolvimos en producción."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 3                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-3">
+  <div class="meta">Slide 3 | 0:03 - 0:06 | 3 min</div>
+  <h2>The Real Problem</h2>
+
+  <p>A fintech client of Factored sells charged-off debt. More than <strong>a million accounts
+  sold</strong>. Each sale generates <strong>thousands of affidavits</strong>: legal documents signed under oath.</p>
+
+  <ul>
+    <li>Someone must verify that every number in each affidavit matches the operational data.</li>
+    <li>If they do not match, the signer is <strong>swearing to false information under oath</strong>.</li>
+    <li><strong>Scale:</strong> 1M+ accounts sold, ~$60M in proceeds. Thousands of PDFs. Different format per buyer.</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Can we automate this with AI?</strong> Yes. But should you trust it blindly?
+  </div>
+
+  <h3>A production data point</h3>
+  <p>First model tried (open-source, Llama 3.1 with 405 billion parameters):
+  missed <strong>22 out of 25</strong> known real exceptions.
+  <strong>88% miss rate.</strong></p>
+  <p style="color:#666;">The model read the PDFs fine and produced valid JSON. It just did not
+  catch the discrepancies. It looked like it was working, but silently passed bad data.</p>
+
+  <h3>How it fails (concrete example)</h3>
+  <p>The prompt tells the LLM: <em>"The expected chargeoff balance is $12,847.00. Find this value in
+  the document."</em> The document actually says <strong>$12,874.00</strong> (transposed digits).
+  The model responds: <code>found: true, value: "$12,847.00"</code>. It echoed the expected value
+  instead of reading the document. The Conscience catches this because it compares
+  the extracted value against the operational data independently.</p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Un cliente fintech de Factored vende deuda castigada. Más de un millón de cuentas. Cada venta genera miles de affidavits: documentos legales firmados bajo juramento."<br>
+    - "Alguien tiene que revisar que cada número del affidavit coincida con los datos reales. Si no coinciden, esa persona jura algo falso bajo juramento."<br>
+    - "Escala: ~$60M en proceeds, miles de PDFs, un formato distinto por comprador."<br>
+    - "¿Se puede automatizar con IA? Sí. ¿Pero le confiarían a ciegas?"<br>
+    - "Dato de producción: el primer modelo que probamos (Llama 3.1, 405 mil millones de parámetros) se comió 22 de 25 excepciones reales. 88% de miss rate."<br>
+    - "Y ojo: leía los PDFs bien y devolvía un JSON válido. Simplemente no atrapaba las discrepancias. Parecía funcionar, pero pasaba datos malos en silencio. Ese es el escenario más peligroso."<br>
+    - "Es fintech porque ahí lo corro yo, pero el patrón aplica a salud, seguros, compliance: cualquier lugar donde el output de un modelo tiene consecuencias reales."<br>
+    <br>
+    <strong>Transición:</strong> "¿Cómo llegamos hasta acá? Veamos rápido la evolución de la extracción de documentos."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 4                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-4">
+  <div class="meta">Slide 4 | 0:06 - 0:08 | 2 min</div>
+  <h2>How Document Extraction Evolved</h2>
+
+  <table>
+    <thead>
+      <tr><th>Stage</th><th>Approach</th><th>Strength</th><th>Weakness</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge">1</span> Rules &amp; Regex</td>
+        <td>Pattern matching on text</td>
+        <td>100% deterministic, instant</td>
+        <td>Breaks when layout changes</td>
+      </tr>
+      <tr>
+        <td><span class="badge">2</span> OCR</td>
+        <td>Image to text (Tesseract, Textract)</td>
+        <td>Handles scans</td>
+        <td>No semantic understanding</td>
+      </tr>
+      <tr>
+        <td><span class="badge">3</span> Layout-aware parsers</td>
+        <td>Understand tables, columns, reading order</td>
+        <td>Structured extraction</td>
+        <td>Still rule-based per format</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warn">4</span> LLMs / Vision models</td>
+        <td>Read any layout, understand semantics</td>
+        <td>Maximum flexibility</td>
+        <td><strong>Not deterministic. Can hallucinate.</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="text-align:center; color:#666; font-style:italic; margin-top:1em;">
+    Each leap gains flexibility but loses determinism.
+  </p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Etapa 1: reglas y regex. Si el formato no cambia, funciona perfecto y es instantáneo."<br>
+    - "Etapa 2: OCR. Convertir imágenes a texto (Tesseract, Textract)."<br>
+    - "Etapa 3: parsers que entienden la estructura: tablas, columnas, orden de lectura."<br>
+    - "Etapa 4: donde estamos hoy. LLMs que leen cualquier formato. Máxima flexibilidad, pero no son deterministas y pueden alucinar."<br>
+    - "El punto: cada salto ganó flexibilidad y perdió determinismo. Eso importa cuando hay consecuencias legales. Por eso nuestro pipeline usa regex primero y el LLM solo como respaldo."<br>
+    <br>
+    <strong>Si preguntan "¿los LLMs reemplazan a OCR?":</strong> "Para documentos complejos y variados, ayudan. Para volumen alto con formato uniforme, no: regex u OCR siguen siendo más baratos, rápidos y deterministas. Lo que gana es el enfoque híbrido: extraer el texto con pypdf/OCR, e interpretar con el LLM solo lo que hace falta."<br>
+    <br>
+    <strong>Transición:</strong> "Pero no todo PDF es igual."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 5                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-5">
+  <div class="meta">Slide 5 | 0:08 - 0:14 | 6 min (narrated during smoke test)</div>
+  <h2>PDF Types (and Why It Matters)</h2>
+
+  <p><strong>Identify the type BEFORE choosing the tool.</strong></p>
+
+  <table>
+    <thead>
+      <tr><th>Type</th><th>What's inside</th><th>Extraction</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge">Native / Digital</span></td>
+        <td>Embedded text (created by software)</td>
+        <td><code>pypdf</code> extracts perfectly. No AI, no OCR, free, exact.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warn">Scanned / Image</span></td>
+        <td>Only pixels (photo of a document)</td>
+        <td>Needs OCR or a vision model to "read" the image.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warn">Hybrid</span></td>
+        <td>Mix: some pages text, some images</td>
+        <td>Detect page by page. Route accordingly.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warn">Interactive forms (AcroForm/XFA)</span></td>
+        <td>Looks like text, but values live in an internal dictionary</td>
+        <td><strong>Trap:</strong> normal parsers see blank fields. Values are invisible to them.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight">
+    Throwing an LLM at a native-text PDF is like using a microscope to read a billboard.
+  </div>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish, se narra mientras levantan el entorno):</strong><br>
+    - "Mientras arranca el entorno, hablemos de algo que mucha gente no sabe: no todo PDF es igual."<br>
+    - "Nativo: el texto ya está adentro. pypdf lo extrae perfecto. Sin IA, gratis, exacto."<br>
+    - "Escaneado: solo píxeles, una foto. No hay texto que extraer; se necesita OCR o un modelo con visión."<br>
+    - "Híbrido: unas páginas tienen texto, otras son imágenes. Hay que detectar página por página."<br>
+    - "Formularios interactivos: la trampa. Parece texto, pero los valores viven en un diccionario interno. Los parsers normales ven campos vacíos."<br>
+    - "Lección: identifiquen el tipo ANTES de elegir la herramienta. Tirarle un LLM a un PDF nativo es como usar un microscopio para leer una valla."<br>
+    <br>
+    <strong>Si preguntan por escaneados:</strong> "Si pypdf no puede leer el PDF (es imagen), va directo al Cerebro: un LLM con visión (Claude, Gemini) lee la imagen y extrae los campos, sin paso de OCR aparte. La Conciencia valida igual. En este taller todos los PDFs son nativos, pero la arquitectura cubre ambos casos."<br>
+    <strong>Si preguntan que los PDFs son generados:</strong> "Sí, con fpdf2. Los reales son más complejos (18-41 páginas, nombres tipo 'APELLIDO; NOMBRE', fechas sin cero inicial, prosa legal densa), pero el PATRÓN es idéntico: extraer, validar contra la fuente de verdad, y mandar a revisión cuando no cuadra."<br>
+    <br>
+    <strong>Chequeo de setup:</strong> "¿Quién tiene Airflow en localhost:8080? El que esté verde, levante la mano y ayude al vecino."<br>
+    <br>
+    <strong>Transición:</strong> "Ya saben qué tipo de PDF tienen. Ahora, el modelo mental de todo el pipeline."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 6 (merged: Eyes/Brain/Conscience/Judge + Poll from old Spectrum slide) -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-6">
+  <div class="meta">Slide 6 | 0:14 - 0:17 | 3 min</div>
+  <h2>Eyes / Brain / Conscience / Judge</h2>
+
+  <div style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:0.8em; margin:1em 0; text-align:center;">
+  <svg viewBox="0 0 1000 500" width="100%" style="max-width:960px; font-family:system-ui,-apple-system,sans-serif;" role="img" aria-label="Pipeline flow: Eyes, Regex shortcut or Brain fallback, Conscience, Judge">
+    <defs>
+      <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#555"/></marker>
+      <marker id="ah-green" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#2e7d32"/></marker>
+      <marker id="ah-orange" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#e65100"/></marker>
+      <marker id="ah-red" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#c62828"/></marker>
+    </defs>
+    <style>
+      .role{font-size:13px;font-weight:700}
+      .sub{font-size:10.5px}
+      .dtext{font-size:11px;font-weight:600;fill:#6d4c00}
+      .elabel{font-size:10.5px}
+      .leg{font-size:11px;fill:#444}
+    </style>
+
+    <!-- ===== Brain (fallback lane, above the happy path) ===== -->
+    <rect x="552" y="48" width="220" height="64" rx="8" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
+    <text x="662" y="74" text-anchor="middle" class="role" fill="#bf360c">BRAIN · LLM fallback</text>
+    <text x="662" y="90" text-anchor="middle" class="sub" fill="#bf360c">interprets text semantically</text>
+    <text x="662" y="105" text-anchor="middle" class="sub" fill="#bf360c">powerful · can hallucinate</text>
+
+    <!-- ===== Main flow (left to right) ===== -->
+    <!-- PDF -->
+    <rect x="18" y="182" width="104" height="56" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1.5"/>
+    <text x="70" y="215" text-anchor="middle" class="role" fill="#444">Affidavit PDF</text>
+
+    <!-- Eyes -->
+    <rect x="142" y="182" width="140" height="56" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+    <text x="212" y="206" text-anchor="middle" class="role" fill="#0d47a1">EYES · pypdf</text>
+    <text x="212" y="222" text-anchor="middle" class="sub" fill="#0d47a1">reads raw text</text>
+
+    <!-- native? diamond -->
+    <polygon points="360,174 416,210 360,246 304,210" fill="#fffde7" stroke="#f9a825" stroke-width="1.5"/>
+    <text x="360" y="207" text-anchor="middle" class="dtext">native</text>
+    <text x="360" y="220" text-anchor="middle" class="dtext">text?</text>
+
+    <!-- Regex -->
+    <rect x="440" y="182" width="140" height="56" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+    <text x="510" y="206" text-anchor="middle" class="role" fill="#1b5e20">REGEX · shortcut</text>
+    <text x="510" y="222" text-anchor="middle" class="sub" fill="#1b5e20">match field patterns</text>
+
+    <!-- all fields? diamond -->
+    <polygon points="662,172 720,210 662,248 604,210" fill="#fffde7" stroke="#f9a825" stroke-width="1.5"/>
+    <text x="662" y="207" text-anchor="middle" class="dtext">all fields</text>
+    <text x="662" y="220" text-anchor="middle" class="dtext">found?</text>
+
+    <!-- Conscience -->
+    <rect x="768" y="180" width="160" height="60" rx="8" fill="#e0f2f1" stroke="#00796b" stroke-width="1.5"/>
+    <text x="848" y="200" text-anchor="middle" class="role" fill="#004d40">CONSCIENCE</text>
+    <text x="848" y="215" text-anchor="middle" class="sub" fill="#004d40">guardrails · runs ALWAYS</text>
+    <text x="848" y="229" text-anchor="middle" class="sub" fill="#004d40">cross-check vs source</text>
+
+    <!-- verdict? diamond (below Conscience) -->
+    <polygon points="848,286 903,320 848,354 793,320" fill="#fffde7" stroke="#f9a825" stroke-width="1.5"/>
+    <text x="848" y="324" text-anchor="middle" class="dtext">verdict?</text>
+
+    <!-- PASS -> load -->
+    <rect x="672" y="408" width="150" height="54" rx="8" fill="#d4edda" stroke="#2e7d32" stroke-width="1.5"/>
+    <text x="747" y="431" text-anchor="middle" class="role" fill="#155724">PASS → load</text>
+    <text x="747" y="447" text-anchor="middle" class="sub" fill="#155724">no human needed</text>
+
+    <!-- Judge -->
+    <rect x="838" y="408" width="150" height="54" rx="8" fill="#ede7f6" stroke="#4527a0" stroke-width="1.5"/>
+    <text x="913" y="431" text-anchor="middle" class="role" fill="#311b92">JUDGE · human</text>
+    <text x="913" y="447" text-anchor="middle" class="sub" fill="#311b92">reviews flagged</text>
+
+    <!-- ===== Edges ===== -->
+    <!-- PDF -> Eyes -->
+    <line x1="122" y1="210" x2="140" y2="210" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <!-- Eyes -> native? -->
+    <line x1="282" y1="210" x2="302" y2="210" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <!-- native? yes -> Regex -->
+    <line x1="416" y1="210" x2="438" y2="210" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <text x="427" y="202" text-anchor="middle" class="elabel" fill="#555">yes</text>
+    <!-- Regex -> all fields? -->
+    <line x1="580" y1="210" x2="602" y2="210" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <!-- all fields yes -> Conscience (SHORTCUT) -->
+    <line x1="720" y1="210" x2="766" y2="210" stroke="#2e7d32" stroke-width="2.4" marker-end="url(#ah-green)"/>
+    <text x="743" y="235" text-anchor="middle" class="elabel" fill="#1b5e20" font-weight="600">match ✓ skip Brain</text>
+
+    <!-- native? no (scanned) -> Brain -->
+    <polyline points="360,174 360,80 550,80" fill="none" stroke="#e65100" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/>
+    <text x="366" y="66" class="elabel" fill="#bf360c">no: scanned, no text</text>
+    <!-- all fields no (miss) -> Brain -->
+    <polyline points="662,172 662,114" fill="none" stroke="#e65100" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/>
+    <text x="670" y="150" class="elabel" fill="#bf360c">no: regex miss</text>
+    <!-- Brain -> Conscience -->
+    <polyline points="772,80 848,80 848,178" fill="none" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <text x="856" y="130" class="elabel" fill="#555">extraction</text>
+
+    <!-- Conscience -> verdict? -->
+    <line x1="848" y1="240" x2="848" y2="284" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <!-- verdict PASS -> load -->
+    <polyline points="848,354 848,382 747,382 747,406" fill="none" stroke="#2e7d32" stroke-width="1.8" marker-end="url(#ah-green)"/>
+    <text x="792" y="374" text-anchor="middle" class="elabel" fill="#1b5e20" font-weight="600">PASS</text>
+    <!-- verdict REVIEW -> Judge -->
+    <polyline points="903,320 940,320 940,382 913,382 913,406" fill="none" stroke="#c62828" stroke-width="1.8" marker-end="url(#ah-red)"/>
+    <text x="948" y="336" class="elabel" fill="#c62828" font-weight="600">REVIEW</text>
+
+    <!-- ===== Legend (bottom-left) ===== -->
+    <rect x="18" y="360" width="372" height="126" rx="6" fill="#ffffff" stroke="#dee2e6"/>
+    <rect x="34" y="380" width="16" height="12" rx="3" fill="#e8f5e9" stroke="#2e7d32"/>
+    <text x="58" y="390" class="leg">deterministic: free, reproducible (Regex, Conscience)</text>
+    <rect x="34" y="404" width="16" height="12" rx="3" fill="#fff3e0" stroke="#e65100"/>
+    <text x="58" y="414" class="leg">LLM: powerful, fallible (Brain)</text>
+    <line x1="34" y1="438" x2="62" y2="438" stroke="#555" stroke-width="1.6" marker-end="url(#ah)"/>
+    <text x="70" y="442" class="leg">normal flow</text>
+    <line x1="34" y1="462" x2="62" y2="462" stroke="#e65100" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/>
+    <text x="70" y="466" class="leg">bypass / fallback to the Brain</text>
+  </svg>
+  </div>
+
+  <p style="text-align:center; font-weight:600; color:#0a5;">
+    If the Brain hallucinates, the Conscience catches it. That's the pattern.
+  </p>
+
+  <p style="text-align:center; margin-top:1em; font-size:1.1em;">
+    <strong>Poll:</strong> Same clean format, 10,000 PDFs. Regex or LLM?
+  </p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Este es el modelo mental del taller: cuatro roles y un atajo." (señalar diagrama)<br>
+    - "Guía por colores: verde = determinista (Regex y Conciencia, gratis y reproducible), naranja = LLM (el Cerebro, poderoso pero falible). Flechas sólidas = flujo normal; punteadas = desvíos al Cerebro."<br>
+    - "Ojos (pypdf): leen el texto crudo. No interpretan."<br>
+    - "Regex: el atajo. Si el formato trae campos etiquetados ('Consumer Name: Jane Doe'), los saca directo. Si salen todos, nos saltamos el Cerebro."<br>
+    - "Cerebro (LLM): entra cuando el regex falla (prosa, etiquetas distintas, o PDF escaneado). Interpreta y estructura. Poderoso, pero puede inventar."<br>
+    - "Conciencia: validaciones en Python. Comparan lo extraído contra los datos reales. Corre SIEMPRE, venga de regex o del Cerebro."<br>
+    - "Juez: humano. Solo revisa los casos marcados REVIEW; los PASS se archivan solos."<br>
+    - "La frase clave: si el Cerebro alucina, la Conciencia lo atrapa."<br>
+    <br>
+    <strong>Poll (30 seg):</strong> "Mismo formato limpio, 10.000 PDFs: ¿regex o LLM?" (manos) &rarr; "Regex primero: a escala el LLM cuesta plata y tiempo; regex es gratis y reproducible. El LLM entra solo como respaldo. Regla: LLM para descubrir formatos nuevos, determinista para escalar los conocidos."<br>
+    <br>
+    <strong>Transición:</strong> "Suficiente teoría. Veámoslo corriendo de punta a punta."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 7                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-7">
+  <div class="meta">Slide 7 | 0:17 - 0:19 | 2 min (live demo)</div>
+  <h2>Live Demo: The Happy Path</h2>
+
+  <p>The mental model from the last slide, running end to end:</p>
+
+  <pre><code>python run_demo.py     # All fields match source of truth  ->  PASS</code></pre>
+
+  <p>Under a second: the Eyes read the PDF, the Brain structures it (canned), the Conscience
+  checks every field against the source of truth. All 11 fields match &rarr;
+  <span class="verdict-pass">PASS</span>.</p>
+
+  <p style="color:#0a5; font-weight:600; margin-top:1em;">
+    The interesting case, when the Brain hallucinates and the Conscience catches it
+    (<span class="verdict-review">REVIEW</span>), you will see in your own terminal in
+    Exercise 2. Saving that moment for you.
+  </p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Ya vimos el modelo mental. Ahora véanlo corriendo de punta a punta." (la arquitectura ya está en la slide anterior, aquí es puro demo)<br>
+    <br>
+    <strong>Demo (correr en terminal, SOLO el happy path):</strong><br>
+    <code>python run_demo.py</code> -> "Todos los campos coinciden con la fuente de verdad. PASS. Corrió en menos de un segundo."<br>
+    - "Mostrar la tabla de findings en pantalla: 11 filas, todas verdes, todas MATCH."<br>
+    - "El caso interesante, cuando el LLM alucina y las validaciones lo atrapan, lo van a ver en su propia terminal en el Ejercicio 2. No les quiero quemar la sorpresa aquí."<br>
+    <br>
+    <strong>NO correr `--variant hallucinated` aquí.</strong> Guardar ese momento para Ex 2. La primera vez que alguien vea REVIEW en pantalla debe ser cuando ellos mismos escribieron el Conciencia que lo atrapó. Es el clímax pedagógico del taller.<br>
+    <br>
+    <strong>Nota sobre LLM real (mencionar breve):</strong><br>
+    - "El demo usa respuestas pre-grabadas (sin internet, sin API key). Si ponen un key en <code>.env</code>, el pipeline llama al LLM real automáticamente, sin cambiar código, y funciona igual en el DAG. pytest siempre usa las pre-grabadas. Está en el README; lo prueban después."<br>
+    <br>
+    <strong>Anécdota real (si hay tiempo, ~30 seg):</strong><br>
+    - "Corrí este mismo prompt contra un affidavit real de 41 páginas con Gemini 2.5 Flash. Extrajo todo bien, pero devolvió sale_balance: null. ¿Por qué? El documento solo traía un Bill of Sale a nivel portafolio, no el saldo individual. El LLM fue honesto: no inventó un número. La Conciencia lo manda a REVIEW porque el campo llegó vacío. Mejor un null que una alucinación."<br>
+    <br>
+    <strong>Transición:</strong> "Eso son las 4 piezas que van a construir hoy. Veámoslas antes de arrancar."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 8                                                          -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-8">
+  <div class="meta">Slide 8 | 0:19 - 0:20 | 1 min (before Exercise 1)</div>
+  <h2>The 4 Pillars You Build Today</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Pillar</th><th>File</th><th>What You Do</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><strong>Extraction</strong></td>
+        <td><code>workshop/pipeline/extract.py</code></td>
+        <td>Eyes detect PDF type. Regex shortcut extracts known formats. Brain (LLM) handles the rest.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Guardrails</strong></td>
+        <td><code>workshop/pipeline/guardrails.py</code></td>
+        <td>The Conscience: normalize amounts/dates, audit exhibits, assign verdict. Runs always.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Idempotency</strong></td>
+        <td><code>workshop/pipeline/idempotency.py</code></td>
+        <td>Content-hash cache + SQLite upsert. Run twice, zero duplicates.</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Orchestration</strong></td>
+        <td><code>dags/affidavit_dag.py</code></td>
+        <td>Airflow DAG wires Eyes, Brain, Conscience, and Judge per buyer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Core blanks</strong> = required. <strong>Stretch blanks</strong> = for fast participants.</p>
+  <p>Stuck more than 5 min? <code>git checkout solutions</code></p>
+  <p>After each blank: <code>pytest tests/test_&lt;pillar&gt;.py</code>. Green = done.</p>
+
+  <p style="margin-top:1em;">The dataset includes <strong>multiple PDF formats</strong>. Some have clean labeled fields (the regex shortcut works). Others bury data in prose or use different labels (the Brain takes over). You'll discover which is which.</p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - (Mostrar tabla) "Cuatro piezas: Extracción, Conciencia, Idempotencia, Orquestación. Cada una es un archivo que van a completar."<br>
+    - "Cada ejercicio tiene un blank obligatorio y blanks opcionales para los que van rápido."<br>
+    - "Después de cada blank, corran pytest. Verde = listo. Si se traban más de 5 min: git checkout solutions."<br>
+    <br>
+    <strong>Si preguntan por pyproject.toml:</strong> "Es la metadata del proyecto (el package.json de Python). Aquí solo configura pytest. No lo toquen."<br>
+    <br>
+    <strong>Transición:</strong> "Empecemos por la primera pieza: extracción. Abran workshop/pipeline/extract.py."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 9 (Exercise 1)                                             -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-9">
+  <div class="meta">Slide 9 | 0:20 - 0:50 | 30 min (Exercise 1)</div>
+  <h2 style="text-align:center; font-size:2em; color:#0a5;">Exercise 1: Extraction</h2>
+
+  <div style="text-align:center; margin:1.5em 0;">
+    <p style="font-size:3em; font-weight:700; color:#333;">30 min</p>
+  </div>
+
+  <table>
+    <tr>
+      <td><strong>File</strong></td>
+      <td><code>workshop/pipeline/extract.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Core blank</strong></td>
+      <td>Implement <code>detect_pdf_type()</code> + <code>deterministic_extract()</code></td>
+    </tr>
+    <tr>
+      <td><strong>Stretch</strong></td>
+      <td>Wire up LLM fallback in <code>extract_affidavit()</code></td>
+    </tr>
+    <tr>
+      <td><strong>Check</strong></td>
+      <td><code>pytest tests/test_extract.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>See it live</strong></td>
+      <td><code>python -m workshop.pipeline.extract</code> (optional, uses your key if set)</td>
+    </tr>
+    <tr>
+      <td><strong>Stuck?</strong></td>
+      <td><code>git checkout solutions</code></td>
+    </tr>
+  </table>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Ejercicio 1. Tienen 30 minutos."<br>
+    - "Antes de escribir código: en una terminal corran <code>read_pdf()</code> sobre 2-3 PDFs de <code>data/pdfs/</code>. Miren cómo aparecen los campos. Unos vienen etiquetados ('Consumer Name: Jane Doe'), otros en prosa. Eso les dice cuándo sirve el regex y cuándo necesitan el Cerebro."<br>
+    - "Abran <code>extract.py</code> e implementen las funciones vacías. Core: <code>detect_pdf_type()</code> y <code>deterministic_extract()</code> (los regex ya vienen dados en FIELD_PATTERNS; ustedes escriben la lógica). Stretch: cablear el fallback al LLM en <code>extract_affidavit()</code>."<br>
+    - "Verifican con <code>pytest tests/test_extract.py</code>. Verde = listo. ¿Trabados 5 min? git checkout solutions."<br>
+    <br>
+    <strong>Ver el LLM en vivo (opcional, si pusieron un key):</strong> "Después de pasar los tests, corran <code>python -m workshop.pipeline.extract</code>. Con un PDF enredado usa el Cerebro; con uno limpio gana el regex. El log dice qué camino tomó. Sin key, usa las pre-grabadas. Sin Docker."<br>
+    <br>
+    <strong>Douglas:</strong> Dejar la slide en el proyector y caminar por la sala. A los ~10 min, preguntar quién tiene el primer test verde.<br>
+    <br>
+    <strong>Si terminan rápido:</strong> "Si ya pasaron los tests, corran <code>python -m workshop.pipeline.extract</code> sobre distintos PDFs. El log les dice qué camino tomó cada uno: regex o Cerebro. Prueben con PDFs de buyer_a (limpios) y buyer_b (prosa). Vean la diferencia."<br>
+    <br>
+    <strong>Transición (al cerrar):</strong> "Ya extraen los datos. Ahora la pieza que los valida: la Conciencia. Ejercicio 2."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 10 (Exercise 2, was slide 11)                              -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-10">
+  <div class="meta">Slide 10 | 0:50 - 1:20 | 30 min (Exercise 2)</div>
+  <h2 style="text-align:center; font-size:2em; color:#0a5;">Exercise 2: Guardrails</h2>
+
+  <div style="text-align:center; margin:1.5em 0;">
+    <p style="font-size:3em; font-weight:700; color:#333;">30 min</p>
+  </div>
+
+  <table>
+    <tr>
+      <td><strong>File</strong></td>
+      <td><code>workshop/pipeline/guardrails.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Core blanks</strong></td>
+      <td>
+        <code>normalize_amount()</code>, <code>normalize_date()</code> (only MM/DD/YYYY + ISO passthrough),
+        <code>audit_bill_of_sale()</code>, <code>assign_verdict()</code>
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Stretch</strong></td>
+      <td>
+        Multi-format dates in <code>normalize_date()</code> (e.g. "March 15, 2024") +
+        <code>check_statement_contradiction()</code> (logical date check) +
+        <code>normalize_name()</code> (match "LAST; FIRST" vs "First Last")
+      </td>
+    </tr>
+    <tr>
+      <td><strong>Check</strong></td>
+      <td><code>pytest tests/test_guardrails.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Stuck?</strong></td>
+      <td><code>git checkout solutions</code></td>
+    </tr>
+  </table>
+
+  <div class="highlight">
+    When done: <code>pytest tests/test_guardrails.py -m "not stretch"</code> to test the Conscience (core blanks only).<br>
+    Then: <code>python run_demo.py --variant hallucinated</code> to see the Conscience catch a hallucination.
+  </div>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    <strong>Intro verbal (1-2 min antes de soltar):</strong><br>
+    - "Por qué importa: el LLM puede leer mal un número ($38M se vuelve $88M), inventar datos, o dar resultados distintos cada vez, aun con temperature=0."<br>
+    - "Dato real: el modelo open source perdió 22 de 25 excepciones (88%). Con Sonnet 4.6, sobre 250 documentos, flageó 40 y los 40 eran reales. Cero false passes. Aun con el mejor modelo, la Conciencia es innegociable, y ustedes la escriben."<br>
+    <br>
+    - "Ejercicio 2, el estrella. Tienen 30 minutos."<br>
+    - "Antes de escribir código: abran <code>data/seeds/source_of_truth.csv</code> y compárenlo con lo que extrajeron. Los montos vienen '$6,218.55' en el PDF y 6218.55 en el CSV; las fechas '03/15/2024' vs '2024-03-15'. Eso les dice QUÉ normalizar."<br>
+    - "Abran <code>guardrails.py</code>. Core: normalizar montos, normalizar fechas, auditar el bill of sale, y asignar el veredicto. Stretch: más formatos de fecha, <code>check_statement_contradiction()</code>, y <code>normalize_name()</code> (para que 'GARCIA; MARIA L.' haga match con 'Maria L. Garcia')."<br>
+    - "Verifican con <code>pytest tests/test_guardrails.py -m 'not stretch'</code> (solo core). Después: <code>python run_demo.py --variant hallucinated</code> para ver la Conciencia atrapar una alucinación en vivo."<br>
+    <br>
+    <strong>Si alguien corre <code>--variant hallucinated_dates</code> tras el stretch:</strong> aparecen DOS razones, no una. El mismatch de last_payment_date ya fuerza REVIEW por sí solo. El stretch <code>check_statement_contradiction</code> agrega una razón DISTINTA: "pago después del chargeoff", que es coherencia lógica, no comparación de valores. Ese es el punto del stretch. (No decir que la contradicción es la única razón del REVIEW.)<br>
+    <br>
+    <strong>Douglas:</strong> Dejar la slide en el proyector y caminar por la sala.<br>
+    <br>
+    <strong>Transición (al cerrar):</strong> "La Conciencia ya atrapa errores. Ahora evitemos reprocesar y duplicar: Ejercicio 3."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 11 (Exercise 3, was slide 12)                              -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-11">
+  <div class="meta">Slide 11 | 1:20 - 1:35 | 15 min (Exercise 3)</div>
+  <h2 style="text-align:center; font-size:2em; color:#0a5;">Exercise 3: Idempotency</h2>
+
+  <ul>
+    <li><strong>Content-hash cache:</strong> same PDF + same prompt = skip reprocessing.</li>
+    <li><strong>Upsert by business key:</strong> run twice, zero duplicates. Same pattern as <code>MERGE INTO</code> in Snowflake, Databricks, or BigQuery.</li>
+  </ul>
+
+  <div style="text-align:center; margin:1.5em 0;">
+    <p style="font-size:3em; font-weight:700; color:#333;">15 min</p>
+  </div>
+
+  <table>
+    <tr>
+      <td><strong>File</strong></td>
+      <td><code>workshop/pipeline/idempotency.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Core blanks</strong></td>
+      <td><code>hash_content()</code> (SHA-256) + <code>upsert_result()</code> (INSERT ON CONFLICT)</td>
+    </tr>
+    <tr>
+      <td><strong>Stretch</strong></td>
+      <td>Wire up <code>process_with_cache()</code> end to end</td>
+    </tr>
+    <tr>
+      <td><strong>Check</strong></td>
+      <td><code>pytest tests/test_idempotency.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Stuck?</strong></td>
+      <td><code>git checkout solutions</code></td>
+    </tr>
+  </table>
+
+  <div class="highlight">
+    Verify: run the pipeline twice on the same PDF. Second run = cache hit, 0 new rows.
+  </div>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "Idempotencia suena fancy, pero es simple: si corren el pipeline dos veces sobre el mismo PDF, el resultado no se debe duplicar."<br>
+    - "Sin cache, el LLM reprocesa (cuesta plata y tiempo). Sin upsert, la base duplica filas. Dos mecanismos: un hash del contenido como cache y un upsert con INSERT ON CONFLICT DO UPDATE. Mismo patrón que un MERGE en Snowflake, Databricks o BigQuery."<br>
+    - "Detalle sutil: el hash incluye la VERSIÓN del prompt. Si cambian el prompt, el cache viejo ya no aplica. Reusar cache tras cambiar el prompt es un bug real que mucha gente ha vivido."<br>
+    - "Ejercicio 3. Tienen 15 minutos. Core: <code>hash_content()</code> y <code>upsert_result()</code>. Stretch: <code>process_with_cache()</code>. Verifican con <code>pytest tests/test_idempotency.py</code>."<br>
+    <br>
+    <strong>Douglas:</strong> Dejar la slide en el proyector mientras trabajan.<br>
+    <br>
+    <strong>Transición (al cerrar):</strong> "Última pieza: juntar todo en un pipeline que corre solo. Orquestación con Airflow: Ejercicio 4."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 12 (Exercise 4, was slide 13)                              -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-12">
+  <div class="meta">Slide 12 | 1:35 - 1:50 | 15 min (Exercise 4)</div>
+  <h2 style="text-align:center; font-size:2em; color:#0a5;">Exercise 4: Orchestration</h2>
+
+  <div class="highlight" style="margin-bottom:1em;">
+    <strong>Why Airflow?</strong> A single Python script will not scale. In production, this pipeline pulls PDFs from cloud storage, calls LLMs as external services, writes results to a database, validates against transactional data, and routes REVIEW cases to a human reviewer (the Judge). Airflow orchestrates all of that: retries, dependencies, parallelism per buyer, and visibility into what ran and what failed.
+  </div>
+
+  <div class="diagram">
+    for each <strong>buyer</strong> (TaskGroup):<br>
+    &nbsp;&nbsp;download_pdfs &rarr; Eyes + Brain (parse_and_extract) &rarr; Conscience (validate_results) &rarr; Judge (create_review_tickets)
+  </div>
+
+  <div style="text-align:center; margin:1.5em 0;">
+    <p style="font-size:3em; font-weight:700; color:#333;">15 min</p>
+  </div>
+
+  <h3 style="margin-top:1em;">Airflow TaskFlow in 30 seconds</h3>
+  <pre><code>@task
+def step_a() -> list:     # @task makes it an Airflow task
+    return [1, 2, 3]
+
+@task
+def step_b(data: list):   # receiving step_a's output = dependency
+    print(data)
+
+result = step_a()
+step_b(result)             # step_a runs first, step_b waits for it</code></pre>
+
+  <table>
+    <tr>
+      <td><strong>File</strong></td>
+      <td><code>dags/affidavit_dag.py</code></td>
+    </tr>
+    <tr>
+      <td><strong>Provided</strong></td>
+      <td><code>download_pdfs()</code>, <code>parse_and_extract()</code>, <code>load_source_records()</code>, <code>validate_results()</code></td>
+    </tr>
+    <tr>
+      <td><strong>Core blanks</strong></td>
+      <td><code>create_review_tickets()</code> (4 lines) + <code>process_buyer()</code> wiring (4 lines)</td>
+    </tr>
+    <tr>
+      <td><strong>Stretch</strong></td>
+      <td>Implement <code>validate_results()</code> (status branching + Conscience)</td>
+    </tr>
+    <tr>
+      <td><strong>Check</strong></td>
+      <td>Trigger DAG in <code>localhost:8080</code>, see green graph</td>
+    </tr>
+    <tr>
+      <td><strong>Stuck?</strong></td>
+      <td><code>git checkout solutions</code></td>
+    </tr>
+  </table>
+
+  <div class="highlight">
+    Goal: trigger the DAG manually from Airflow UI and see a green graph with TaskGroups per buyer.
+  </div>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish):</strong><br>
+    - "¿Por qué Airflow? Un script de Python no escala. En producción, este pipeline jala PDFs de cloud storage, llama LLMs como servicios externos, escribe resultados a una base de datos, valida contra datos transaccionales, y rutea los casos REVIEW al revisor humano, el Juez. Airflow orquesta todo eso: retries, dependencias, paralelismo por comprador, y visibilidad sobre qué corrió y qué falló."<br>
+    <br>
+    - "Último ejercicio. El patrón: un TaskGroup por comprador."<br>
+    - "Mini primer de Airflow para los que no lo conocen: (señalar el código de ejemplo en la slide). @task convierte una función en un task de Airflow. Cuando le pasas el return de un task como argumento de otro, Airflow crea la dependencia automáticamente. No necesitan el operador >>. El return de step_a va a step_b, y Airflow sabe que step_a va primero."<br>
+    - "La mayoría del DAG ya se los damos resuelto: download_pdfs, parse_and_extract, load_source_records, validate_results. Ustedes solo implementan dos blanks: create_review_tickets (4 líneas, filtrar los REVIEW y registrarlos con logger.warning) y process_buyer (4 líneas, cablear los tasks en secuencia)."<br>
+    - "Ojo con process_buyer: usen <code>.override(group_id=f'process_{buyer}')</code> para que cada iteración del loop tenga un id único. Sin eso, Airflow tira DuplicateTaskIdFound."<br>
+    - "Stretch: implementen validate_results() ustedes mismos (status branching + Conciencia)."<br>
+    - "Disclaimer producción: en este ejercicio, la lógica corre dentro de los tasks de Airflow. En producción, Airflow es un orquestador puro. No le pongan carga pesada al worker. Airflow dispara el procesamiento en otro lado y solo coordina dependencias, retries y alertas."<br>
+    - "Cuando terminen: vayan a localhost:8080, disparen el DAG, y vean el grafo verde con dos TaskGroups."<br>
+    - "Login: airflow / airflow."<br>
+    - "Si no tienen Docker corriendo, sigan en el proyector."<br>
+    <br>
+    <strong>El desenlace del taller (en modo pre-grabado, el default):</strong><br>
+    - "Miren los logs del task create_review_tickets. De 8 documentos, 7 dan PASS y 1 da REVIEW: ACCT-007, chargeoff_balance VALUE MISMATCH. El affidavit dice $7,892.15 pero nuestros registros transaccionales dicen $8,750.00. La Conciencia lo atrapó y lo mandó al Juez. Ese único REVIEW en un grafo verde ES el taller completo: Ojos, Cerebro, Conciencia, Juez, de punta a punta."<br>
+    - "El grafo sigue verde: un REVIEW no es una falla del pipeline, es el pipeline haciendo su trabajo. Marca para revisión humana, no rompe."<br>
+    <br>
+    <strong>Nota LLM real en el DAG (si alguien puso un key):</strong><br>
+    - "Con un key real verán MÁS REVIEWs, no solo el de ACCT-007. El LLM a veces omite campos (closing_date, sale_balance) o varía un texto (original_creditor), y la Conciencia los marca con razón: son fallas reales de extracción. Ese es el punto: el LLM real no es perfecto y la capa determinista lo atrapa."<br>
+    - "Nota sobre nombres: el LLM devuelve 'GARCIA; MARIA L.' (otro orden). El stretch <code>normalize_name()</code> del Ejercicio 2 hace que eso SÍ haga match (orden y puntuación no importan). Si hicieron ese stretch, no verán falsos positivos de nombre; si no, es justo el ejemplo de por qué normalizar antes de comparar."<br>
+    - "Si pusieron un key en <code>.env</code>, el DAG usa el LLM real automáticamente, sin cambiar código. Abran un task <code>parse_and_extract</code> en la UI y en los logs van a ver, por PDF, cuáles usaron el atajo de regex y cuáles cayeron al Cerebro. Después los veredictos REVIEW aparecen abajo, la Conciencia atrapando al Cerebro en vivo."<br>
+    <br>
+    <strong>Prep defensivo (si preguntan "¿por qué el DAG no usa el cache/upsert del Ejercicio 3?"):</strong><br>
+    - "Buena pregunta. En producción sí lo haría: el DAG llamaría a process_with_cache() y el upsert evitaría duplicados entre re-runs. Aquí los separamos a propósito para que cada ejercicio sea independiente. Si se quedan pegados en el Ejercicio 3, no quiero que eso les bloquee el Ejercicio 4. Pero el patrón de integración es trivial: donde el DAG llama a extract + guardrails, en producción envolvería todo en process_with_cache(). Una línea de cambio."<br>
+    <br>
+    <strong>Douglas:</strong> Dejar la slide en el proyector. A los ~10 min, preguntar "¿Quién tiene el DAG verde?"<br>
+    <br>
+    <strong>Transición (al cerrar):</strong> "Terminamos el pipeline completo: Ojos, Cerebro, Conciencia y Juez, orquestados. Cerremos con los patrones que se llevan a su trabajo."
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- SLIDE 13 (Closing, was slide 14)                                 -->
+<!-- ================================================================ -->
+<section class="slide" id="slide-13">
+  <div class="meta">Slide 13 | 1:50 - 2:00 | 10 min (5 min recap + 5 min Q&amp;A)</div>
+  <h2>5 Patterns to Take Home</h2>
+
+  <ol>
+    <li><strong>Eyes first.</strong> Identify the PDF type before choosing a tool. Native text? Regex shortcut. Unknown layout? The Brain.</li>
+    <li><strong>Never trust the Brain without the Conscience.</strong>
+      In production: one model missed 88% of exceptions, another caught them all.
+      The model matters, and even then, the Conscience (deterministic guardrails) is non-negotiable.</li>
+    <li><strong>Hash + upsert = run twice without duplicating.</strong>
+      Same pattern in SQLite, Snowflake, or BigQuery. Version the prompt in the cache key.</li>
+    <li><strong>TaskGroup per entity = clean parallelism in Airflow.</strong>
+      The DAG wires Eyes, Brain, Conscience, and Judge per buyer. In production, Airflow orchestrates but does not process.</li>
+    <li><strong>Sanitize outputs by audience (the Judge sees everything, external parties do not).</strong>
+      Full detail to the internal reviewer. Field name + issue type only to external parties.
+      PII-safe by construction.</li>
+  </ol>
+
+  <p style="margin-top:1.5em; font-size:1.1em;">
+    These patterns are not specific to PDFs. They apply to any pipeline where a model
+    generates data that has real consequences.
+  </p>
+
+  <hr style="margin: 2em 0;">
+
+  <p style="font-size:1.2em; font-weight:600; color:#0a5; margin-top:1em;">
+    Factored is hiring in LATAM: <a href="https://factored.ai/careers">factored.ai/careers</a>
+  </p>
+
+  <div class="notes">
+    <strong>Speaker notes (Spanish, 5 min recap):</strong><br>
+    - "Recap: cinco patrones que se llevan a su trabajo."<br>
+    &nbsp;&nbsp;1. "Ojos primero. Identifiquen el tipo de PDF antes de elegir herramienta. Texto nativo? Regex. Layout desconocido? El Cerebro."<br>
+    &nbsp;&nbsp;2. "Nunca confien en el Cerebro sin la Conciencia. En produccion un modelo perdio 88% de las excepciones, otro las atrapo todas. El modelo importa, y aun asi la Conciencia es innegociable."<br>
+    &nbsp;&nbsp;3. "Hash + upsert = correr dos veces sin duplicar. Mismo patron en SQLite, Snowflake, Databricks o BigQuery. Versionen el prompt en el cache key."<br>
+    &nbsp;&nbsp;4. "TaskGroup por entidad = paralelismo limpio en Airflow. El DAG conecta Ojos, Cerebro, Conciencia y Juez por comprador. En produccion, Airflow orquesta pero no procesa."<br>
+    &nbsp;&nbsp;5. "Outputs sanitizados por audiencia: el Juez ve todo. Pero si algo va a un tercero, field name + issue type solamente. PII-safe by construction."<br>
+    - "Estos patrones no son específicos de PDFs. Aplican a cualquier pipeline donde un modelo genera datos que tienen consecuencias reales."<br>
+    - "Ya tienen el repo clonado desde el setup: código, tests, README con todo. Sigan cualquier update ahí."<br>
+    - "Y si les gustó lo que vieron: Factored está contratando en LATAM. factored.ai/careers."<br>
+    - "¿Quien logro que el regex Y el LLM fallback funcionen en todos los formatos?"<br>
+    <br>
+    <strong>Q&amp;A (5 min o buffer):</strong><br>
+    - "¿Preguntas?"<br>
+    - Si nadie pregunta: "¿Alguno está procesando documentos en producción? ¿Qué problemas se encontraron?"<br>
+    - Este bloque es el buffer natural si un ejercicio se pasó.
+  </div>
+</section>
+
+</body>
+</html>

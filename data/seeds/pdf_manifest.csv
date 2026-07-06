@@ -1,0 +1,10 @@
+pdf_stem,reference_id
+sample_affidavit,ACCT-001
+acct_1234_standard,ACCT-002
+acct_5678_variant,ACCT-002
+acct_9012_narrative,ACCT-003
+acct_1357_alt_labels,ACCT-004
+acct_2468_footer_bos,ACCT-004
+acct_8899_table,ACCT-005
+acct_3377_alt_fields,ACCT-006
+acct_6644_multi_amounts,ACCT-007

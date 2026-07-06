@@ -1,0 +1,14 @@
+.venv/
+venv/
+.git/
+.pytest_cache/
+__pycache__/
+*.pyc
+logs/
+data/cache/
+data/results.db
+docs/
+slides/
+.env
+*.md
+LICENSE
