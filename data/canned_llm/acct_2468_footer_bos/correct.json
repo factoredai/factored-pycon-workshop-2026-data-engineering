@@ -1,0 +1,14 @@
+{
+  "consumer_name": "Robert A. Johnson",
+  "last4": "2468",
+  "original_creditor": "Pacific Trust Bank",
+  "debt_buyer": "Buyer A, LLC",
+  "chargeoff_balance": "$8,750.30",
+  "chargeoff_date": "05/01/2024",
+  "last_payment_date": "03/22/2024",
+  "last_payment_amount": "$125.00",
+  "closing_date": "06/30/2024",
+  "sale_balance": "$9,100.50",
+  "transfer_date": "07/15/2024",
+  "bill_of_sale_attached": false
+}
