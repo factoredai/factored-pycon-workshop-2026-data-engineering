@@ -1,0 +1,8 @@
+reference_id,consumer_name,last4,original_creditor,debt_buyer,chargeoff_balance,chargeoff_date,last_payment_date,last_payment_amount,closing_date,sale_balance,transfer_date
+ACCT-001,Jane M. Doe,7890,First National Bank,"Buyer A, LLC",6218.55,2024-03-15,2024-01-10,150.00,2024-06-30,6418.22,2024-07-15
+ACCT-002,John R. Smith,4321,Metro Credit Union,"Buyer A, LLC",12450.00,2024-02-28,2024-01-05,200.00,2024-06-30,12890.33,2024-07-15
+ACCT-003,Maria L. Garcia,5555,Coastal Savings Bank,"Buyer B, LLC",3200.75,2024-04-10,2024-02-20,75.00,2024-06-30,3350.00,2024-07-15
+ACCT-004,Robert A. Johnson,2468,Pacific Trust Bank,"Buyer A, LLC",8750.30,2024-05-01,2024-03-22,125.00,2024-06-30,9100.50,2024-07-15
+ACCT-005,Alice B. Cooper,8899,Summit Credit Union,"Buyer A, LLC",5400.00,2024-07-01,2024-06-15,90.00,2024-06-30,5650.00,2024-07-15
+ACCT-006,David E. Torres,3377,Heritage National Bank,"Buyer B, LLC",4125.60,2024-04-20,2024-03-01,100.00,2024-06-30,4300.00,2024-07-15
+ACCT-007,Patricia N. Wells,6644,Lakeside Federal Bank,"Buyer B, LLC",8750.00,2024-05-15,2024-04-02,175.00,2024-06-30,8200.00,2024-07-15

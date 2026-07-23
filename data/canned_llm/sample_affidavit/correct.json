@@ -1,0 +1,14 @@
+{
+  "consumer_name": "Jane M. Doe",
+  "last4": "7890",
+  "original_creditor": "First National Bank",
+  "debt_buyer": "Buyer A, LLC",
+  "chargeoff_balance": "$6,218.55",
+  "chargeoff_date": "03/15/2024",
+  "last_payment_date": "01/10/2024",
+  "last_payment_amount": "$150.00",
+  "closing_date": "06/30/2024",
+  "sale_balance": "$6,418.22",
+  "transfer_date": "07/15/2024",
+  "bill_of_sale_attached": true
+}
