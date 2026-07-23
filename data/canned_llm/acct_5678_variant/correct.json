@@ -1,0 +1,14 @@
+{
+  "consumer_name": "John R. Smith",
+  "last4": "4321",
+  "original_creditor": "Metro Credit Union",
+  "debt_buyer": "Buyer A, LLC",
+  "chargeoff_balance": "$12,450.00",
+  "chargeoff_date": "02/28/2024",
+  "last_payment_date": "01/05/2024",
+  "last_payment_amount": "$200.00",
+  "closing_date": "06/30/2024",
+  "sale_balance": "$12,890.33",
+  "transfer_date": "07/15/2024",
+  "bill_of_sale_attached": true
+}
