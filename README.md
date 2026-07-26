@@ -111,6 +111,8 @@ real deployments. Override via `.env` if you want your own values (see `.env.exa
 
 ## Exercises
 
+![Mental Model](mental_model.png)
+
 | # | Role | File | Run with | What You Do |
 |---|------|------|----------|-------------|
 | 1 | Eyes + Regex + Brain | `workshop/pipeline/extract.py` | `pytest` (local) | PDF type detection + extraction logic (regex patterns provided) |
